@@ -8,6 +8,9 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Notifications from 'expo-notifications';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../components/firebaseConfig'; // adjust path
 import { DocumentStorage } from '../utils/documentStorage';
 import { Bell, Clock, Calendar, CheckCircle, ArrowLeft } from 'lucide-react-native';
 
@@ -15,6 +18,41 @@ export default function NotificationsScreen() {
   const router = useRouter();
   const [expiringDocuments, setExpiringDocuments] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+
+  const scheduleNotificationsForExpiringDocs = async (userId) => {
+  try {
+    const snapshot = await getDocs(collection(db, `users/${userId}/documents`));
+    const now = new Date();
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const expiryDate = data.expiryDate?.toDate?.(); // assuming expiryDate is a Timestamp
+
+      if (expiryDate) {
+        const timeDiff = expiryDate.getTime() - now.getTime();
+        const daysLeft = timeDiff / (1000 * 60 * 60 * 24);
+
+        // ⚠️ Customize threshold (e.g., 1 day before expiration)
+        if (daysLeft <= 1 && daysLeft > 0) {
+          // Schedule push notification
+          Notifications.scheduleNotificationAsync({
+            content: {
+              title: 'Document Expiring Soon',
+              body: `${data.title || 'One of your documents'} is expiring in less than a day.`,
+              sound: 'default',
+            },
+            trigger: {
+              seconds: 5, // You can schedule it with real expiry time difference
+            },
+          });
+        }
+      }
+    });
+
+      } catch (error) {
+    console.error('Error scheduling notifications:', error);
+  }
+};
 
   useEffect(() => {
     loadExpiringDocuments();

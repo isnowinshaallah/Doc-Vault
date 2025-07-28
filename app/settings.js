@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { useAuth } from '../contexts/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -25,8 +26,27 @@ import {
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [backupEnabled, setBackupEnabled] = useState(false);
+
+  useEffect(() => {
+  // Load preference when settings screen opens
+  const loadPreference = async () => {
+    const enabled = await SecureStore.getItemAsync('biometricEnabled');
+    setBiometricEnabled(enabled === 'true');
+  };
+  loadPreference();
+}, []);
+
+const toggleBiometric = async (value) => {
+  setBiometricEnabled(value);
+  if (value) {
+    await SecureStore.setItemAsync('biometricEnabled', 'true');
+  } else {
+    await SecureStore.deleteItemAsync('biometricEnabled');
+  }
+};
 
   const handleLogout = () => {
     Alert.alert(
@@ -127,7 +147,7 @@ export default function SettingsScreen() {
             rightElement={
               <Switch
                 value={biometricEnabled}
-                onValueChange={setBiometricEnabled}
+                onValueChange={toggleBiometric}
                 trackColor={{ false: '#E0E0E0', true: '#B2DFDB' }}
                 thumbColor={biometricEnabled ? '#00796B' : '#999'}
               />

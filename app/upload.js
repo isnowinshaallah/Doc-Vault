@@ -4,6 +4,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
   StyleSheet,
   ScrollView,
   Alert,
@@ -62,7 +66,6 @@ export default function UploadScreen() {
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
-      aspect: [4, 3],
       quality: 0.8,
     });
 
@@ -79,7 +82,6 @@ export default function UploadScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
-      aspect: [4, 3],
       quality: 0.8,
     });
 
@@ -147,6 +149,7 @@ export default function UploadScreen() {
     } finally {
       setIsUploading(false);
     }
+    Keyboard.dismiss();
   };
 
   const showDatePicker = () => setDatePickerVisibility(true);
@@ -159,6 +162,12 @@ export default function UploadScreen() {
 };
 
   return (
+    <KeyboardAvoidingView
+  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+  style={{ flex: 1 }}
+>
+   <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
@@ -267,11 +276,14 @@ export default function UploadScreen() {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flexGrow: 1,
     flex: 1,
     backgroundColor: '#FAFAFA',
   },

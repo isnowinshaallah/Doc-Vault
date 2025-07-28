@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
+import { useGoogleAuth } from '../utils/googleAuth'; // ✅ your hook}
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 
 export default function AuthScreen() {
@@ -18,6 +19,7 @@ export default function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+   const { promptAsync, request } = useGoogleAuth();
   const { login, loginWithGoogle, loginOffline } = useAuth();
 
   const handleEmailLogin = async () => {
@@ -40,7 +42,7 @@ export default function AuthScreen() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      await loginWithGoogle();
+      await promptAsync();
       router.replace('/dashboard');
     } catch (error) {
       Alert.alert('Google Login Failed', 'Please try again');

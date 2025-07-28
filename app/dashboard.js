@@ -10,6 +10,8 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
 import { DocumentStorage } from '../utils/documentStorage';
+import * as LocalAuthentication from 'expo-local-authentication';
+import * as SecureStore from 'expo-secure-store';
 import { DOCUMENT_CATEGORIES } from '../constants/documentCategories';
 import { CategoryCard } from '../components/CategoryCard';
 import { DocumentCard } from '../components/DocumentCard';
@@ -26,6 +28,16 @@ export default function DashboardScreen() {
   useEffect(() => {
     loadDocuments();
   }, []);
+
+  const enableBiometrics = async () => {
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: 'Enable Biometric Login',
+    });
+    if (result.success) {
+      await SecureStore.setItemAsync('credentials', JSON.stringify({ uid }));
+      Alert.alert('Enabled', 'You can now unlock with biometrics.');
+    }
+  };
 
   const loadDocuments = async () => {
     try {
